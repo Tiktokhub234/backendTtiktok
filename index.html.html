@@ -1,0 +1,1850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Panel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet"
+ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+body{margin:0;font-family:Arial;background:#f4f5f7}
+.hidden{display:none}
+#loginBox{max-width:350px;margin:100px auto;background:#fff;padding:20px;border-radius:10px}
+input,button{width:100%;padding:10px;margin-top:10px}
+button{background:#111;color:#fff;border:none;cursor:pointer}
+.sidebar{
+  width:220px;
+  background:#111;
+  color:#fff;
+  height:100vh;
+  flex-shrink:0;
+}
+.sidebar button{background:none;color:#fff;border:none;padding:15px;width:100%;text-align:left}
+.content{
+  flex:1;
+  padding:25px;
+  background:#f4f5f7;
+}
+.card{background:#fff;padding:15px;border-radius:8px;margin-bottom:10px}
+/* 🔥 Withdraw Header */
+.withdraw-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:#fff;
+  padding:20px;
+  border-radius:12px;
+  margin-bottom:20px;
+  box-shadow:0 6px 20px rgba(0,0,0,.08);
+}
+
+.withdraw-header h2{
+  margin:0;
+  font-size:22px;
+}
+
+.withdraw-header p{
+  margin:4px 0 0;
+  color:#777;
+  font-size:13px;
+}
+
+.withdraw-header input{
+  width:260px;
+  padding:10px 14px;
+  border-radius:8px;
+  border:1px solid #ddd;
+  font-size:14px;
+}
+
+/* 🔥 Withdraw Row */
+#withdraw .card{
+  transition:.2s;
+}
+
+#withdraw .card:hover{
+  background:#fafafa;
+  transform:scale(1.005);
+}
+
+/* 🔥 Status Colors */
+.status-approved{color:green;font-weight:bold}
+.status-pending{color:#e6a700;font-weight:bold}
+.status-rejected{color:red;font-weight:bold}
+
+/* 🔥 Buttons */
+#withdraw button{
+  padding:6px 10px;
+  font-size:13px;
+  border-radius:6px;
+}
+
+#withdraw button:first-child{
+  background:#2ecc71;
+}
+
+#withdraw button:last-child{
+  background:#e74c3c;
+}
+/* 🔥 Reject Modal Proper Hide/Show */
+#rejectBox{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.5);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+
+#rejectBox.show{
+  display:flex;
+}
+/* ✅ MODAL DESIGN */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+
+.modal.hidden{
+  display:none;
+}
+
+.modal-box{
+  width:420px;
+  background:#fff;
+  border-radius:14px;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
+  overflow:hidden;
+  animation:pop .25s ease;
+}
+
+@keyframes pop{
+  from{transform:scale(.9);opacity:0}
+  to{transform:scale(1);opacity:1}
+}
+
+.modal-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:18px 20px;
+  border-bottom:1px solid #eee;
+}
+
+.modal-header h3{margin:0}
+
+.modal-header span{
+  cursor:pointer;
+  font-size:20px;
+}
+
+.modal-body{
+  padding:20px;
+}
+
+.modal-body input,
+.modal-body select{
+  width:100%;
+  padding:10px;
+  margin-bottom:12px;
+  border-radius:8px;
+  border:1px solid #ddd;
+}
+
+.total{
+  font-weight:bold;
+  margin-top:10px;
+}
+
+.modal-footer{
+  display:flex;
+  gap:10px;
+  padding:15px 20px;
+  border-top:1px solid #eee;
+}
+
+.btn-primary{
+  flex:1;
+  background:#111;
+  color:#fff;
+  border:none;
+  padding:10px;
+  border-radius:8px;
+}
+
+.btn-light{
+  flex:1;
+  background:#eee;
+  border:none;
+  padding:10px;
+  border-radius:8px;
+}
+#adminPanel{
+  display:flex;
+}
+
+#adminPanel.hidden{
+  display:none;
+}
+
+#supportBadge{
+  animation:pulse 1s infinite;
+}
+@keyframes pulse{
+  0%{transform:scale(1)}
+  50%{transform:scale(1.2)}
+  100%{transform:scale(1)}
+}
+/* ================= MOBILE RESPONSIVE ================= */
+#mobileMenuBtn{
+  display:none;
+  background:#111;
+  color:#fff;
+  border:none;
+  padding:12px;
+  font-size:16px;
+  width:100%;
+}
+
+/* 🔥 Mobile */
+@media (max-width: 768px){
+
+  body{
+    overflow-x:hidden;
+  }
+
+  #mobileMenuBtn{
+    display:block;
+    margin-bottom:10px;
+  }
+
+  /* Sidebar hide */
+  .sidebar{
+    position:fixed;
+    left:-240px;
+    top:0;
+    height:100%;
+    z-index:999;
+    transition:.3s;
+  }
+
+  .sidebar.show{
+    left:0;
+  }
+
+  #adminPanel{
+    flex-direction:column;
+  }
+
+  .content{
+    padding:15px;
+  }
+
+  /* Tables → cards */
+  .card{
+    font-size:14px;
+  }
+
+  /* Withdraw & Orders grid fix */
+  #withdraw .card,
+  #orders .card{
+    grid-template-columns:1fr !important;
+  }
+
+  /* Inputs full width */
+  input, textarea, select, button{
+    width:100% !important;
+  }
+
+  /* Header wrap */
+  .withdraw-header{
+    flex-direction:column;
+    gap:10px;
+    align-items:flex-start;
+  }
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="loginBox">
+  <h2>Admin Login</h2>
+
+  <input type="email" id="adminEmail" placeholder="Admin Email">
+<input type="password" id="adminPass" placeholder="Password">
+
+<button id="loginBtn">Login</button>
+
+<div style="text-align:right;margin-top:6px">
+  <small style="cursor:pointer;color:#007bff"
+    onclick="resetAdminPass()">Forgot password?</small>
+</div>
+</div>   <!-- ✅ LOGIN BOX CLOSE -->
+<!-- PANEL -->
+<div id="adminPanel" class="hidden">
+
+<div class="sidebar">
+  <button onclick="showPage('dashboard')">Dashboard</button>
+  <button onclick="showPage('users')">Users</button>
+  <button onclick="showPage('balance')">Balance Add</button>
+  <button onclick="showPage('withdraw')">Withdraw</button>
+  <button onclick="showPage('stores')">Total Store</button>
+<button onclick="showPage('orders')">Orders</button> <!-- ✅ NEW -->
+<button onclick="showPage('createOrder')">Create Order</button>
+<button onclick="showPage('reminder')">Reminder</button>
+<button onclick="showPage('support')" id="supportBtn" style="position:relative">
+  Support Messages
+  <span id="supportBadge" style="
+    position:absolute;
+    right:10px;
+    top:8px;
+    background:red;
+    color:#fff;
+    font-size:11px;
+    padding:2px 6px;
+    border-radius:10px;
+    display:none;
+  ">0</span>
+</button>
+<button onclick="showPage('adminServiceNotice')">Service Notice</button>
+<button onclick="logout()">Logout</button>
+</div>
+<button id="mobileMenuBtn" onclick="toggleSidebar()">
+  ☰ Menu
+</button>
+
+<div class="content">
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <h2>Dashboard</h2>
+  <p>Welcome Admin 👑</p>
+</div>
+
+<!-- USERS -->
+<div id="users" class="hidden">
+  <h2>User Control</h2>
+
+  <input id="searchInput" placeholder="Email or Store Name">
+  <button onclick="searchUser()">Search</button>
+
+  <div id="result"></div>
+</div>
+<!-- ✅ BALANCE CONTROL PAGE -->
+<div id="balance" class="hidden">
+
+  <h2>Balance Control</h2>
+
+  <input id="balanceSearch" placeholder="Email or Store Name">
+  <button onclick="searchBalanceUser()">Search</button>
+
+  <div id="balanceResult"></div>
+
+</div>
+<div id="withdraw" class="hidden">
+
+  <!-- HEADER -->
+  <div class="withdraw-header">
+    <div>
+      <h2>Withdraw Requests</h2>
+      <p>Manage user withdrawal requests</p>
+    </div>
+
+    <input
+      id="withdrawSearch"
+      placeholder="🔍 Search by store / email"
+    >
+  </div>
+
+  <!-- TABLE HEADER -->
+ <div class="card" style="display:grid;
+  grid-template-columns:1fr 1fr 1fr 1fr 1fr 1fr;
+  gap:10px;font-weight:bold">
+  <div>Store</div>
+  <div>Email</div>
+  <div>Total</div>
+  <div>Status</div>
+  <div>Date</div>
+  <div>Action</div>
+</div>
+
+  <!-- LIST -->
+  <div id="withdrawList"></div>
+</div>
+<!-- ❌ REJECT MODAL -->
+<div id="rejectBox" class="hidden">
+
+  <div class="card" style="width:320px">
+    <h3>Reject Withdraw</h3>
+
+    <textarea id="rejectReason"
+      placeholder="Reason for rejection"
+      style="width:100%;height:80px"></textarea>
+
+    <button onclick="submitReject()">Submit</button>
+    <button onclick="closeReject()">Cancel</button>
+  </div>
+</div>
+<!-- ✅ ORDER MODAL -->
+<!-- ✅ ORDER MODAL (PRO) -->
+<div id="orderModal" class="modal hidden">
+  <div class="modal-box">
+
+    <div class="modal-header">
+      <h3>Create Order</h3>
+      <span onclick="closeOrder()">✖</span>
+    </div>
+
+    <div class="modal-body">
+      <input id="o_storeName" disabled placeholder="Store">
+
+      <input id="o_customer" placeholder="Customer Name">
+
+      <select id="o_product"></select>
+
+      <input id="o_qty" type="number" placeholder="Quantity">
+
+      <div class="total">
+        Total: $<span id="o_total">0</span>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-primary" onclick="sendOrder()">Send Order</button>
+      <button class="btn-light" onclick="closeOrder()">Cancel</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ✅ TOTAL STORES PAGE -->
+<div id="stores" class="hidden">
+
+  <h2>Total Registered Stores</h2>
+
+  <div class="card" style="display:grid;
+    grid-template-columns:1.5fr 1fr 2fr 2fr 1fr 1fr;
+    gap:10px;font-weight:bold">
+    <div>Store Name</div>
+    <div>Phone</div>
+    <div>Email</div>
+    <div>User ID</div>
+    <div>Date</div>
+    <div>Action</div>
+  </div>
+
+  <!-- ✅ YAHAN HOGA -->
+  <div id="storeList"></div>
+
+</div>  <!-- stores page end -->
+
+<!-- ✅ CREATE ORDER PAGE -->
+<div id="createOrder" class="hidden">
+
+  <h2>Create Order</h2>
+
+  <input id="orderSearch" placeholder="Search store by name / phone">
+  <button onclick="searchStoreForOrder()">Search</button>
+
+  <div id="orderStoreResult"></div>
+
+</div>
+<!-- ✅ REMINDER PAGE -->
+<div id="reminder" class="hidden">
+
+  <h2>Send Reminder / Notice</h2>
+
+  <input id="reminderSearch" placeholder="Search by Email or Phone">
+  <button onclick="searchReminderUser()">Search User</button>
+
+  <div id="reminderUserResult" style="margin:10px 0"></div>
+
+  <textarea id="reminderMsg"
+    placeholder="Write notice message..."
+    style="width:100%;height:100px;margin-top:10px"></textarea>
+
+  <!-- 👤 Single User -->
+  <button onclick="sendReminder()" style="margin-top:10px">
+    Send To This User 🔔
+  </button>
+
+  <!-- 🌍 All Users -->
+  <button onclick="sendReminderToAll()" 
+    style="margin-top:10px;background:#e74c3c;color:#fff">
+    Send To All Users 🚀
+  </button>
+
+</div>
+<!-- ✅ ORDERS PAGE -->
+<div id="orders" class="hidden">
+
+  <h2>All Orders</h2>
+<input
+  id="orderSearchInput"
+  placeholder="🔍 Search by Store / Email / Status / Amount / Date"
+  style="width:320px;padding:10px 14px;margin-bottom:15px;
+  border-radius:8px;border:1px solid #ddd;font-size:14px">
+
+  <div class="card" style="display:grid;
+    grid-template-columns:1fr 1fr 1fr 1fr 1fr;
+    gap:10px;font-weight:bold">
+    <div>Store</div>
+    <div>Email</div>
+    <div>Total</div>
+    <div>Status</div>
+    <div>Action</div>
+  </div>
+
+  <div id="adminOrderList"></div>
+
+</div> <!-- ✅ CLOSE ORDERS PAGE HERE -->
+
+
+<!-- ✅ SUPPORT PAGE (FIXED – CHAT ALWAYS ON TOP) -->
+<div id="support" class="hidden">
+
+  <h2>Support Messages</h2>
+
+  <input id="supportSearch" placeholder="Search by email / phone">
+  <button onclick="searchSupportUser()">Search</button>
+
+  <!-- 🔥 CHAT BOX (TOP) -->
+  <div id="adminChatWrapper" style="display:none;margin-top:15px">
+
+    <div id="adminChatBox" style="
+      border:1px solid #ddd;
+      border-radius:10px;
+      height:320px;
+      overflow:auto;
+      padding:10px;
+      background:#fff;
+      margin-bottom:8px">
+    </div>
+
+    <input
+      type="file"
+      id="adminImage"
+      accept="image/*"
+      style="display:none"
+    />
+
+    <button
+      id="adminImageBtn"
+      onclick="document.getElementById('adminImage').click()"
+      style="width:100%;padding:8px;margin-bottom:6px">
+      📷 Send Image
+    </button>
+
+    <input
+      id="adminMsg"
+      placeholder="Type reply..."
+      style="width:100%;padding:10px;margin-bottom:6px">
+
+    <button
+      id="adminSendBtn"
+      onclick="sendAdminMsg()"
+      style="width:100%;padding:10px">
+      Send Reply
+    </button>
+
+  </div>
+
+  <!-- 🔽 SEARCH RESULTS (BOTTOM) -->
+  <div id="supportUserBox" style="margin:10px 0"></div>
+
+</div>
+ <!-- ✅ CLOSE SUPPORT PAGE -->
+<!-- ✅ SERVICE NOTICE PAGE -->
+<div id="adminServiceNotice" class="hidden">
+
+  <h2>Service Notice / Bonus Text</h2>
+<input
+  id="noticeImage"
+  placeholder="Paste image URL (optional)"
+  style="width:100%;padding:10px;margin-bottom:10px">
+
+  <textarea id="noticeText"
+    style="width:100%;height:160px;padding:10px"
+    placeholder="Write bonus / deposit notice here..."></textarea>
+
+  <button onclick="saveNotice()" style="
+    margin-top:10px;
+    padding:10px 20px;
+    background:#111;
+    color:#fff;
+    border:none;
+    border-radius:8px">
+    Save Notice
+  </button>
+
+</div>
+
+</div> <!-- ✅ CLOSE .content HERE -->
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import {
+  
+  getFirestore,
+  collection,
+  getDocs,
+  getDoc,
+  query,
+  where,
+  updateDoc,
+  doc,
+  onSnapshot,
+  orderBy,
+  increment,        // ✅ comma yahan
+  addDoc,
+  setDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  sendPasswordResetEmail
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+let rejectWithdrawId = null;
+let rejectUserId = null;
+let rejectAmount = 0;
+/* 🔴 FIREBASE CONFIG */
+const firebaseConfig = {
+  apiKey: "AIzaSyAcyz67ZgPI2IxPS3WDF4EePCFYfF9heYg",
+  authDomain: "tiktok-shop-89007.firebaseapp.com",
+  projectId: "tiktok-shop-89007"
+};
+
+/* 🔹 INIT */
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+const storage = getStorage(app);
+console.log("Using project:", app.options.projectId);
+const searchInput = document.getElementById("searchInput");
+const result = document.getElementById("result");
+let currentUserDoc = null;
+
+/* 🔹 ELEMENTS (PEHLE DECLARE) */
+const adminEmail = document.getElementById("adminEmail");
+const loginBox = document.getElementById("loginBox");
+const adminPanel = document.getElementById("adminPanel");
+
+/* 🔹 DEFAULT STATE */
+loginBox.classList.remove("hidden");
+adminPanel.classList.add("hidden");
+/* 📱 MOBILE SIDEBAR TOGGLE */
+window.toggleSidebar = function(){
+  const sidebar = document.querySelector(".sidebar");
+  if(sidebar){
+    sidebar.classList.toggle("show");
+  }
+};
+
+async function adminLogin() {
+
+  const email = adminEmail.value.trim();
+  const pass  = document.getElementById("adminPass").value.trim();
+
+  if(!email || !pass) return alert("Enter email & password");
+
+  try {
+
+    const cred = await signInWithEmailAndPassword(auth, email, pass);
+
+    const snap = await getDoc(doc(db, "users", cred.user.uid));
+    const u = snap.data();
+
+    if (u.role !== "admin" || u.status !== "approved") {
+      alert("Not admin");
+      return;
+    }
+
+    loginBox.classList.add("hidden");
+    adminPanel.classList.remove("hidden");
+    showPage("dashboard");
+  } catch(e){
+    alert(e.message);
+  }
+}
+// 🔹 AUTO LOGIN CHECK (page refresh ke baad)
+onAuthStateChanged(auth, async user => {
+  if (!user) return;
+
+  const snap = await getDoc(doc(db, "users", user.uid));
+  if (!snap.exists()) return;
+
+  const u = snap.data();
+
+  if (u.role === "admin" && u.status === "approved") {
+    loginBox.classList.add("hidden");
+    adminPanel.classList.remove("hidden");
+    showPage("dashboard");
+    listenNewSupportNotification();
+listenSupportNotifications();
+
+  }
+});
+/* 🔥🔥 YAHAN BUTTON CONNECT HOTA HAI */
+document.getElementById("loginBtn")
+  .addEventListener("click", adminLogin);
+
+console.log("Login button ready");
+
+window.resetAdminPass = async function(){
+
+  const email = adminEmail.value.trim();
+  if(!email) return alert("Enter email first");
+
+  try{
+    await sendPasswordResetEmail(auth, email);
+    alert("Password reset email sent ✅");
+  }catch(e){
+    alert(e.message);
+  }
+};
+/* 🔍 SEARCH USER */
+window.searchUser = async function () {
+  const qv = searchInput.value.trim();
+  if (!qv) return;
+
+  let q = query(collection(db, "users"), where("email", "==", qv));
+  let snap = await getDocs(q);
+
+  if (snap.empty) {
+    q = query(collection(db, "users"), where("storeName", "==", qv));
+    snap = await getDocs(q);
+  }
+
+  if (snap.empty) {
+    result.innerHTML = "<p>User not found</p>";
+    return;
+  }
+
+  snap.forEach(d => {
+    currentUserDoc = d;
+    const u = d.data();
+
+    result.innerHTML = `
+  <div class="card">
+    <b>${u.storeName}</b><br>
+    ${u.email}<br><br>
+
+    <h3>Shop Data Control</h3>
+
+    Today Orders: <input id="s_todayOrders" value="${u.todayOrders ?? 0}"><br>
+    Today Sales: <input id="s_todaySales" value="${u.todaySales ?? 0}"><br>
+    Today Profit: <input id="s_todayProfit" value="${u.todayProfit ?? 0}"><br>
+    Total Profit: <input id="s_totalProfit" value="${u.totalProfit ?? 0}"><br><br>
+
+    Followers: <input id="s_followers" value="${u.followers ?? 0}"><br>
+    Rating: <input id="s_rating" value="${u.rating ?? 5}"><br>
+    Credit: <input id="s_credit" value="${u.credit ?? 0}"><br><br>
+
+    Today Visitors: <input id="s_todayVisitors" value="${u.todayVisitors ?? 0}"><br>
+    7 Days Visitors: <input id="s_weekVisitors" value="${u.weekVisitors ?? 0}"><br>
+    30 Days Visitors: <input id="s_monthVisitors" value="${u.monthVisitors ?? 0}"><br><br>
+
+    <button onclick="saveStats()">Save Stats</button>
+  </div>
+`;
+  });
+};
+window.showPage = function (p) {
+  document.querySelector(".sidebar").classList.remove("show");
+closeOrder();
+  // sab pages hide
+  document.querySelectorAll(".content > div")
+    .forEach(div => div.classList.add("hidden"));
+
+  // selected page show
+  document.getElementById(p).classList.remove("hidden");
+
+  // withdraw page open ho to data load
+  if (p === "withdraw") {
+    loadWithdrawRequests();
+  }
+  if (p === "stores") {
+  loadStores();
+}
+if (p === "orders") {
+  loadAdminOrders();
+}
+if (p === "support") {
+  loadSupportTickets();
+  document.getElementById("supportBadge").style.display = "none";
+}
+
+};
+function renderWithdraws(list){
+
+  const withdrawList = document.getElementById("withdrawList");
+
+  if (!list.length) {
+    withdrawList.innerHTML = "<p>No withdraw requests</p>";
+    return;
+  }
+
+  let html = "";
+
+  list.forEach(w => {
+
+    html += `
+      <div class="card"
+        style="display:grid;
+        grid-template-columns:1.5fr 1fr 2fr 1fr 1fr 1fr 1fr;
+        gap:10px;
+        align-items:center">
+
+        <div>
+          <b>${w.storeName}</b><br>
+          <small>${w.email}</small>
+        </div>
+
+        <div>${w.bankName}</div>
+
+        <div>
+          ${w.accountNumber}<br>
+          <small>${w.iban}</small>
+        </div>
+
+        <div>
+          ${w.createdAt ? w.createdAt.toDate().toLocaleString() : "-"}
+        </div>
+
+        <div><b>${w.amount} ${w.currency}</b></div>
+
+        <div class="status-${w.status}">
+          ${w.status}
+        </div>
+
+        <div>
+          ${
+            w.status === "pending"
+            ? `
+              <button onclick="approveWithdraw('${w.id}','${w.userId}',${w.amount})">
+                Approve
+              </button>
+              <button onclick="openReject('${w.id}','${w.userId}',${w.amount})">
+                Reject
+              </button>
+            `
+            : "-"
+          }
+        </div>
+
+      </div>
+    `;
+  });
+
+  withdrawList.innerHTML = html;
+}
+/* 💾 SAVE USER */
+window.saveUser = async function () {
+  await updateDoc(
+    doc(db, "users", currentUserDoc.id),
+    {
+      balance: Number(bal.value),
+      pendingAmount: Number(pen.value),
+      totalProfit: Number(profit.value)
+    }
+  );
+  alert("Updated");
+};
+window.saveStats = async function () {
+
+  await updateDoc(
+    doc(db, "users", currentUserDoc.id),
+    {
+      todayOrders: Number(s_todayOrders.value),
+      todaySales: Number(s_todaySales.value),
+      todayProfit: Number(s_todayProfit.value),
+      totalProfit: Number(s_totalProfit.value),
+
+      followers: Number(s_followers.value),
+      rating: Number(s_rating.value),
+      credit: Number(s_credit.value),
+
+      todayVisitors: Number(s_todayVisitors.value),
+      weekVisitors: Number(s_weekVisitors.value),
+      monthVisitors: Number(s_monthVisitors.value),
+
+      totalSales: Number(s_todaySales.value)
+    }
+  );
+
+  alert("Stats Updated ✅");
+};
+/* ✅ APPROVE USER */
+window.approve = async function () {
+  await updateDoc(
+    doc(db, "users", currentUserDoc.id),
+    { status: "approved" }
+  );
+  alert("User Approved");
+};
+
+/* UI */
+let allWithdraws = [];
+function loadWithdrawRequests(){
+
+  const withdrawList = document.getElementById("withdrawList");
+
+  const q = query(
+    collection(db, "withdrawRequests"),
+    orderBy("createdAt", "desc")
+  );
+
+  onSnapshot(q, snap => {
+
+    if (snap.empty) {
+      withdrawList.innerHTML = "<p>No withdraw requests</p>";
+      return;
+    }
+
+    allWithdraws = [];
+
+    snap.forEach(d => {
+      allWithdraws.push({
+        id: d.id,
+        ...d.data()
+      });
+    });
+
+    renderWithdraws(allWithdraws);
+
+  });
+} // ✅ FUNCTION PROPERLY CLOSED HERE
+
+
+window.approveWithdraw = async function(withdrawId, userId, amount){
+
+  await updateDoc(
+    doc(db,"withdrawRequests",withdrawId),
+    { status:"approved" }
+  );
+
+  await updateDoc(
+    doc(db,"users",userId),
+    {
+      balance: increment(-Number(amount)) // ✅ ONLY CUT HERE
+    }
+  );
+
+  alert("Withdraw approved ✅ Balance cut once");
+};
+
+window.openReject = function(id,userId,amount){
+  rejectWithdrawId = id;
+  rejectUserId = userId;
+  rejectAmount = Number(amount);
+
+  document.getElementById("rejectReason").value = "";
+  document.getElementById("rejectBox").classList.add("show");
+};
+
+window.closeReject = function(){
+  const box = document.getElementById("rejectBox");
+  box.classList.remove("show");
+};
+
+window.submitReject = async function(){
+
+  const reason = document.getElementById("rejectReason").value.trim();
+  if(!reason) return alert("Please write reason");
+
+  await updateDoc(
+    doc(db,"withdrawRequests",rejectWithdrawId),
+    {
+      status:"rejected",
+      rejectReason: reason
+    }
+  );
+
+  await addDoc(
+    collection(db,"users",rejectUserId,"notifications"),
+    {
+      message: "Your withdraw was rejected: " + reason,
+      createdAt: serverTimestamp(),
+      read: false
+    }
+  );
+
+  document.getElementById("rejectBox").classList.remove("show");
+  alert("Withdraw rejected ❌");
+};
+/* ================== TOTAL STORES ================== */
+
+function renderStores(list){
+
+  const box = document.getElementById("storeList");
+
+  if(!list.length){
+    box.innerHTML = "<p>No stores found</p>";
+    return;
+  }
+
+  let html = "";
+
+  list.forEach(s=>{
+
+    html += `
+      <div class="card"
+        style="display:grid;
+        grid-template-columns:1.5fr 1fr 2fr 2fr 1fr 1fr;
+        gap:10px;align-items:center">
+        <div><b>${s.storeName}</b></div>
+        <div>${s.phone || "-"}</div>
+        <div>${s.email}</div>
+  <div style="display:flex;align-items:center;gap:8px">
+  <span style="font-size:12px;color:#555;font-family:monospace">
+    ${s.id}
+  </span>
+
+  <i class="fa-regular fa-copy"
+     title="Copy UID"
+     onclick="copyUID('${s.id}', this)"
+     style="
+       cursor:pointer;
+       font-size:13px;
+       color:#888;
+       transition:.2s;
+     "
+     onmouseover="this.style.color='#111'"
+     onmouseout="this.style.color='#888'">
+  </i>
+</div>
+        <div>
+          ${s.createdAt ? s.createdAt.toDate().toLocaleString() : "-"}
+        </div>
+
+        <div>
+          ${
+            s.status === "pending"
+            ? `
+              <button onclick="approveStore('${s.id}')">Approve</button>
+              <button onclick="rejectStore('${s.id}')">Reject</button>
+            `
+            : `<span style="color:green">${s.status}</span>`
+          }
+        </div>
+      </div>
+    `;
+  });
+
+  box.innerHTML = html;
+}
+
+window.loadStores = function(){
+
+  const q = query(
+    collection(db,"users")
+  );
+
+  onSnapshot(q, snap=>{
+
+    let arr = [];
+
+    snap.forEach(d=>{
+      const data = d.data();
+
+      // ✅ sirf wo users jin ka storeName hai = seller
+      if(data.storeName){
+        arr.push({
+          id: d.id,
+          ...data
+        });
+      }
+    });
+
+    // latest first
+    arr.sort((a,b)=>{
+      if(!a.createdAt || !b.createdAt) return 0;
+      return b.createdAt.seconds - a.createdAt.seconds;
+    });
+
+    renderStores(arr);
+
+  });
+};
+
+window.approveStore = async function(id){
+  await updateDoc(doc(db,"users",id),{
+    status:"approved"
+  });
+  alert("Store approved ✅");
+};
+
+window.rejectStore = async function(id){
+  await updateDoc(doc(db,"users",id),{
+    status:"rejected"
+  });
+  alert("Store rejected ❌");
+};
+/* ================= ORDER SYSTEM ================= */
+
+let selectedStore = null;
+let allAdminOrders = [];
+let productsCache = [];
+
+window.searchStoreForOrder = async function(){
+  const qv = orderSearch.value.trim();
+  if(!qv) return;
+
+  let snap;
+
+  // storeName
+  let q = query(collection(db,"users"), where("storeName","==",qv));
+  snap = await getDocs(q);
+
+  // phone
+  if(snap.empty){
+    q = query(collection(db,"users"), where("phone","==",qv));
+    snap = await getDocs(q);
+  }
+
+  // email ✅
+  if(snap.empty){
+    q = query(collection(db,"users"), where("email","==",qv));
+    snap = await getDocs(q);
+  }
+
+  if(snap.empty){
+    orderStoreResult.innerHTML = "Store not found";
+    return;
+  }
+
+  snap.forEach(d=>{
+    selectedStore = {id:d.id, ...d.data()};
+
+   orderStoreResult.innerHTML = `
+  <div class="card">
+    <b>${selectedStore.storeName}</b><br>
+    ${selectedStore.phone} | ${selectedStore.email}<br><br>
+
+    <button onclick="openOrderBox()">Add Order</button>
+  </div>
+`;
+  });
+};
+
+window.openOrderBox = async function(){
+
+  document.getElementById("orderModal").classList.remove("hidden");
+  o_storeName.value = selectedStore.storeName;
+
+  const snap = await getDocs(collection(db,"products"));
+  o_product.innerHTML = "";
+  productsCache = [];
+
+  snap.forEach(d=>{
+    const p = d.data();
+    productsCache.push({id:d.id,...p});
+    o_product.innerHTML += `
+      <option value="${d.id}">
+        ${p.name} ($${p.price})
+      </option>
+    `;
+  });
+
+  // ✅ YAHAN LAGTA HAI
+  setTimeout(()=>{
+    document.getElementById("o_qty").addEventListener("input", calcTotal);
+    document.getElementById("o_product").addEventListener("change", calcTotal);
+  },100);
+};
+
+window.closeOrder = function(){
+  document.getElementById("orderModal").classList.add("hidden");
+};
+
+function calcTotal(){
+  const pid = o_product.value;
+  const qty = Number(o_qty.value || 0);
+  const prod = productsCache.find(p=>p.id===pid);
+  if(!prod) return;
+  o_total.innerText = prod.price * qty;
+}
+
+window.sendOrder = async function(){
+
+  const pid = o_product.value;
+  const qty = Number(o_qty.value);
+  const customer = o_customer.value.trim();
+
+  if(!qty || !customer) return alert("Fill all");
+
+  const prod = productsCache.find(p=>p.id===pid);
+
+  await addDoc(collection(db,"orders"),{
+  userId: selectedStore.id,   // 🔥🔥🔥 MOST IMPORTANT
+  storeId: selectedStore.id,
+  storeName: selectedStore.storeName,
+  userEmail: selectedStore.email,
+  customerName: o_customer.value.trim(),   // ✅ ADD THIS
+
+  items: [{
+    image: prod.image,
+    name: prod.name,
+    price: prod.price,
+    cost: prod.cost,
+    qty: qty
+  }],
+
+  total: prod.price * qty,
+  cost: prod.cost * qty,
+  profit: (prod.price - prod.cost) * qty,
+
+  status: "pending",
+  paymentStatus: "unpaid",
+  createdAt: serverTimestamp()
+});
+  alert("Order Sent ✅");
+  closeOrder();
+};
+window.copyUID = function(id, el){
+  navigator.clipboard.writeText(id);
+
+  el.classList.remove("fa-copy");
+  el.classList.add("fa-check");
+
+  setTimeout(()=>{
+    el.classList.remove("fa-check");
+    el.classList.add("fa-copy");
+  },1200);
+};
+window.loadAdminOrders = function(){
+
+  const box = document.getElementById("adminOrderList");
+
+  const q = query(
+    collection(db,"orders"),
+    orderBy("createdAt","desc")
+  );
+
+  onSnapshot(q, snap=>{
+
+    allAdminOrders = [];
+
+    snap.forEach(d=>{
+      allAdminOrders.push({
+        id: d.id,
+        ...d.data()
+      });
+    });
+
+    renderAdminOrders(allAdminOrders);
+
+  });
+
+};
+ // ✅ loadAdminOrders END
+function renderAdminOrders(list){
+
+  const box = document.getElementById("adminOrderList");
+  box.innerHTML = "";
+
+  list.forEach(o=>{
+
+    box.innerHTML += `
+      <div class="card" style="display:grid;
+        grid-template-columns:1fr 1fr 1fr 1fr 1fr 1fr;
+        gap:10px;align-items:center">
+
+        <div>${o.storeName || "-"}</div>
+        <div>${o.userEmail}</div>
+        <div>$${o.total}</div>
+        <div>${o.status}</div>
+        <div>${o.createdAt ? o.createdAt.toDate().toLocaleString() : "-"}</div>
+
+        <div>
+          <button onclick='openAdminOrderDetail("${o.id}")'>
+            Order Details
+          </button>
+        </div>
+
+      </div>
+    `;
+  });
+
+}
+
+document.addEventListener("input", function(e){
+
+  if(e.target.id !== "orderSearchInput") return;
+
+  const v = e.target.value.toLowerCase();
+
+  const filtered = allAdminOrders.filter(o => {
+
+    const date = o.createdAt
+      ? o.createdAt.toDate().toLocaleString().toLowerCase()
+      : "";
+
+    return (
+      (o.storeName || "").toLowerCase().includes(v) ||
+      (o.userEmail || "").toLowerCase().includes(v) ||
+      (o.status || "").toLowerCase().includes(v) ||
+      String(o.total).includes(v) ||
+      date.includes(v)
+    );
+
+  });
+
+  renderAdminOrders(filtered);
+
+});
+
+/* ================= SUPPORT CHAT SYSTEM ================= */
+
+let supportTicketId = null;
+
+window.searchSupportUser = async function(){
+  const qv = supportSearch.value.trim();
+  if(!qv) return;
+
+  let snap;
+
+  let q = query(collection(db,"users"), where("email","==",qv));
+  snap = await getDocs(q);
+
+  if(snap.empty){
+    q = query(collection(db,"users"), where("phone","==",qv));
+    snap = await getDocs(q);
+  }
+
+  if(snap.empty){
+    supportUserBox.innerHTML = "User not found";
+    return;
+  }
+
+  snap.forEach(d=>{
+    const u = d.data();
+
+    supportUserBox.innerHTML = `
+      <div class="card">
+        <b>${u.storeName}</b><br>
+        ${u.email}<br><br>
+        <button onclick="openSupportChat('${d.id}','${u.email}','${u.storeName}')">
+          Open Chat
+        </button>
+      </div>
+    `;
+  });
+};
+
+window.openSupportChat = async function(uid,email,store){
+
+  const q = query(
+    collection(db,"supportTickets"),
+    where("userId","==",uid),
+    where("status","==","open")
+  );
+
+  const snap = await getDocs(q);
+
+  if(snap.empty){
+    const docRef = await addDoc(collection(db,"supportTickets"),{
+      userId: uid,
+      userEmail: email,
+      storeName: store,
+      status:"open",
+      createdAt: serverTimestamp()
+    });
+    supportTicketId = docRef.id;
+  }else{
+    supportTicketId = snap.docs[0].id;
+  }
+
+document.getElementById("adminChatWrapper").style.display = "block";
+
+// 🔥 auto scroll top
+document.getElementById("support").scrollIntoView({
+  behavior: "smooth"
+});
+
+
+  listenAdminChat();
+};
+
+function listenAdminChat(){
+
+  const q = query(
+    collection(db,"supportTickets", supportTicketId, "messages"),
+    orderBy("createdAt", "asc") // 🔥 MAIN FIX
+  );
+
+  onSnapshot(q, snap => {
+
+    adminChatBox.innerHTML = "";
+
+    snap.forEach(d => {
+      const m = d.data();
+
+      const time = m.createdAt
+        ? m.createdAt.toDate().toLocaleString()
+        : "";
+
+adminChatBox.innerHTML += `
+  <div style="
+    display:flex;
+    flex-direction:column;
+    align-items:${m.sender==="admin"?"flex-end":"flex-start"};
+    margin:8px 0;
+  ">
+
+    <div style="
+      max-width:70%;
+      padding:8px 12px;
+      border-radius:14px;
+      background:${m.sender==="admin"?"#007bff":"#f1f1f1"};
+      color:${m.sender==="admin"?"#fff":"#000"};
+      font-size:13px;">
+
+      ${m.text ? `<div>${m.text}</div>` : ""}
+
+      ${
+        m.image
+        ? `<img src="${m.image}"
+           style="max-width:160px;border-radius:8px;margin-top:6px;cursor:pointer"
+           onclick="window.open('${m.image}','_blank')">`
+        : ""
+      }
+
+    </div>
+
+    <small style="font-size:10px;color:#777;margin-top:2px">
+      ${time}
+    </small>
+
+  </div>
+`;
+
+
+      });
+
+      adminChatBox.scrollTop = adminChatBox.scrollHeight;
+    }
+  );
+}
+
+window.sendAdminMsg = async function(){
+
+  const text = adminMsg.value.trim();
+  const file = document.getElementById("adminImage").files[0];
+
+  if(!text && !file) return alert("Write message or select image");
+
+  let imageUrl = "";
+
+  if(file){
+    const imgRef = ref(
+      storage,
+      `supportImages/${supportTicketId}/${Date.now()}_${file.name}`
+    );
+
+    await uploadBytes(imgRef, file);
+    imageUrl = await getDownloadURL(imgRef);
+  }
+
+  await addDoc(
+    collection(db,"supportTickets",supportTicketId,"messages"),
+    {
+      sender: "admin",
+      text: text || "",
+      image: imageUrl || "",
+      createdAt: serverTimestamp(),
+      read: false
+    }
+  );
+
+  await updateDoc(
+    doc(db,"supportTickets",supportTicketId),
+    {
+      lastMessage: imageUrl ? "📷 Image" : text,
+      lastTime: serverTimestamp(),
+      lastSender: "admin"
+    }
+  );
+
+  adminMsg.value = "";
+  document.getElementById("adminImage").value = "";
+};
+
+function listenNewSupportNotification(){
+
+  const q = query(
+    collection(db,"supportTickets"),
+    orderBy("lastTime","desc")
+  );
+
+  onSnapshot(q, snap=>{
+
+    snap.docChanges().forEach(change=>{
+
+      if(change.type === "modified"){
+
+        const t = change.doc.data();
+
+// agar support page open nahi hai
+if (document.getElementById("support").classList.contains("hidden")) {
+
+  const go = confirm(
+    "🔔 New support message from: " + t.storeName + "\n\nOpen chat?"
+  );
+
+  if (go) {
+    showPage("support");
+    openSupportChat(t.userId, t.userEmail, t.storeName);
+  }
+
+}
+      }
+    });
+  });
+}
+
+/* ✅ SUPPORT TICKETS SYSTEM YAHAN SE */
+
+window.loadSupportTickets = function(){
+
+  const box = document.getElementById("supportUserBox");
+
+  const q = query(
+    collection(db,"supportTickets"),
+    orderBy("lastTime","desc")
+  );
+
+  onSnapshot(q, snap=>{
+
+    box.innerHTML="";
+
+    snap.forEach(d=>{
+      const t = d.data();
+
+      box.innerHTML += `
+        <div class="card">
+          <b>${t.storeName}</b><br>
+          ${t.userEmail}<br>
+          <small>${t.lastMessage || ""}</small><br>
+          <button onclick="openSupportChat('${t.userId}','${t.userEmail}','${t.storeName}')">
+            Open Chat
+          </button>
+        </div>
+      `;
+    });
+
+  });
+
+};
+
+window.openTicket = function(id){
+
+  const msg = prompt("Reply message:");
+  if(!msg) return;
+
+  addDoc(
+    collection(db,"supportTickets",id,"messages"),
+    {
+      sender:"admin",
+      text:msg,
+      time:serverTimestamp()
+    }
+  );
+};
+let currentOrderId = null;
+
+window.openAdminOrderDetail = async function(id){
+
+  currentOrderId = id;
+
+  const snap = await getDoc(doc(db,"orders",id));
+  const o = snap.data();
+
+  ad_store.innerText  = o.storeName || "-";
+  ad_email.innerText  = o.userEmail;
+  ad_pickup.innerText = o.pickup ? "YES" : "NO";
+  ad_status.value     = o.status;
+
+  // user phone nikalna
+  const userSnap = await getDoc(doc(db,"users",o.userId));
+  if(userSnap.exists()){
+    ad_phone.innerText = userSnap.data().phone || "-";
+  }
+
+  document.getElementById("adminOrderModal").classList.remove("hidden");
+};
+
+window.closeAdminOrder = function(){
+  document.getElementById("adminOrderModal").classList.add("hidden");
+};
+
+window.saveOrderStatus = async function(){
+
+  const newStatus = ad_status.value;
+
+  await updateDoc(
+    doc(db,"orders",currentOrderId),
+    { status: newStatus }
+  );
+
+  alert("Status updated ✅");
+  closeAdminOrder();
+};
+/* ================= BALANCE CONTROL ================= */
+
+window.searchBalanceUser = async function () {
+
+  const qv = document.getElementById("balanceSearch").value.trim();
+  if (!qv) return;
+
+  let q = query(collection(db, "users"), where("email", "==", qv));
+  let snap = await getDocs(q);
+
+  if (snap.empty) {
+    q = query(collection(db, "users"), where("storeName", "==", qv));
+    snap = await getDocs(q);
+  }
+
+  if (snap.empty) {
+    balanceResult.innerHTML = "User not found";
+    return;
+  }
+
+  snap.forEach(d => {
+
+    const u = d.data();
+
+    balanceResult.innerHTML = `
+      <div class="card">
+        <b>${u.storeName}</b><br>
+        ${u.email}<br><br>
+
+        Pending Amount:
+        <input id="b_pending" value="${u.pendingAmount ?? 0}"><br>
+
+        Balance:
+        <input id="b_balance" value="${u.balance ?? 0}"><br>
+
+        Total Income:
+        <input id="b_income" value="${u.totalIncome ?? 0}"><br><br>
+
+        <button onclick="saveBalance('${d.id}')">Save</button>
+      </div>
+    `;
+  });
+};
+
+window.saveBalance = async function (uid) {
+
+  await updateDoc(
+    doc(db, "users", uid),
+    {
+      pendingAmount: Number(b_pending.value),
+      balance: Number(b_balance.value),
+      totalIncome: Number(b_income.value)
+    }
+  );
+
+  alert("Balance Updated ✅");
+};
+let reminderUserId = null;
+
+/* 🔍 Search user */
+window.searchReminderUser = async function(){
+
+  const qv = reminderSearch.value.trim();
+  if(!qv) return;
+
+  let snap;
+
+  let q = query(collection(db,"users"), where("email","==",qv));
+  snap = await getDocs(q);
+
+  if(snap.empty){
+    q = query(collection(db,"users"), where("phone","==",qv));
+    snap = await getDocs(q);
+  }
+
+  if(snap.empty){
+    reminderUserResult.innerHTML = "User not found";
+    reminderUserId = null;
+    return;
+  }
+
+  snap.forEach(d=>{
+    const u = d.data();
+    reminderUserId = d.id;
+
+    reminderUserResult.innerHTML = `
+      <div class="card">
+        <b>${u.storeName}</b><br>
+        ${u.email}<br>
+        ${u.phone || "-"}
+      </div>
+    `;
+  });
+
+};
+
+
+/* 👤 Send to single user */
+window.sendReminder = async function(){
+
+  const msg = reminderMsg.value.trim();
+  if(!msg) return alert("Write message");
+
+  if(!reminderUserId)
+    return alert("Search and select a user first");
+
+  await addDoc(
+    collection(db,"users",reminderUserId,"notifications"),
+    {
+      message: msg,
+      createdAt: serverTimestamp(),
+      read: false
+    }
+  );
+
+  alert("Notice sent to user ✅🔔");
+  reminderMsg.value = "";
+};
+
+
+/* 🌍 Send to all users */
+window.sendReminderToAll = async function(){
+
+  const msg = reminderMsg.value.trim();
+  if(!msg) return alert("Write message");
+
+  const snap = await getDocs(collection(db,"users"));
+
+  let count = 0;
+
+  for(const d of snap.docs){
+
+    const u = d.data();
+
+    // sirf sellers ko bhejna
+    if(!u.storeName) continue;
+
+    await addDoc(
+      collection(db,"users",d.id,"notifications"),
+      {
+        message: msg,
+        createdAt: serverTimestamp(),
+        read: false
+      }
+    );
+
+    count++;
+  }
+
+  alert("Broadcast sent to " + count + " users 🚀");
+  reminderMsg.value = "";
+};
+window.saveNotice = async function(){
+
+  const text  = document.getElementById("noticeText").value.trim();
+  const image = document.getElementById("noticeImage").value.trim();
+
+  await setDoc(
+    doc(db,"settings","serviceNotice"),
+    {
+      text: text || "",
+      image: image || "",
+      active: !!(text || image),
+      updatedAt: serverTimestamp()
+    }
+  );
+
+  alert("Service notice updated ✅");
+};
+
+
+let unreadSupportCount = 0;
+
+function listenSupportNotifications(){
+
+  const q = query(
+    collection(db,"supportTickets"),
+    where("status","==","open")
+  );
+
+  onSnapshot(q, snap=>{
+
+    let count = 0;
+
+    snap.forEach(d=>{
+      const t = d.data();
+
+      // agar support page open nahi hai
+      if(document.getElementById("support").classList.contains("hidden")){
+        count++;
+      }
+    });
+
+    const badge = document.getElementById("supportBadge");
+
+    if(count > 0){
+      badge.style.display = "inline-block";
+      badge.innerText = count;
+    }else{
+      badge.style.display = "none";
+    }
+
+  });
+
+}
+
+</script>
+<div id="adminOrderModal" class="modal hidden">
+  <div class="modal-box">
+
+    <div class="modal-header">
+      <h3>Order Details</h3>
+      <span onclick="closeAdminOrder()">✖</span>
+    </div>
+
+    <div class="modal-body">
+
+      <p><b>Store:</b> <span id="ad_store"></span></p>
+      <p><b>Email:</b> <span id="ad_email"></span></p>
+      <p><b>Phone:</b> <span id="ad_phone"></span></p>
+      <p><b>Pickup:</b> <span id="ad_pickup"></span></p>
+
+      <label>Status</label>
+      <select id="ad_status">
+        <option value="pending">Pending</option>
+        <option value="shipment">Shipment</option>
+        <option value="delivered">Delivered</option>
+        <option value="completed">Completed</option>
+      </select>
+
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-primary" onclick="saveOrderStatus()">Save</button>
+      <button class="btn-light" onclick="closeAdminOrder()">Close</button>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>
